@@ -6,14 +6,16 @@ def readInputFile(filename):
 		data = file.read()
 	return data
 
-def writeInputFile(filename, str):
-	f = open(const.PATH_INPUT+filename, "w+")
-	f.write(str)
-	f.close()
+def writeToFile(filepath, str, type="w+"):
+	with open(filepath, type) as f:
+		f.write(str)
 	return True
 
-def writeOutputFile(filename, str):
-	f = open(const.PATH_OUTPUT+filename, "w+")
-	f.write(str)
-	f.close()
+
+def writeInputFile(filename, str, type="w+"):
+	writeToFile(const.PATH_INPUT+filename, str, type)
+	return True
+
+def writeOutputFile(filename, str, type="w+"):
+	writeToFile(const.PATH_OUTPUT+filename, str, type)
 	return True

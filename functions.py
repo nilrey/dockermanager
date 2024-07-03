@@ -1,5 +1,5 @@
 import subprocess
-import hashlib
+from datetime import datetime
 import helpers as h
 
 # список всех конейнеров
@@ -42,7 +42,7 @@ def isSuccess(data):
 def runCommand(command):
 	return subprocess.run(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
 
-# параметры пользователя из файла (название контейнера)  
+# получить параметры запуска контейнера  
 def getContainerParams():
 	str = h.readInputFile('params.txt')
 	params = str.split()
@@ -53,6 +53,7 @@ def getContainerParams():
 	# if len(params) < 3:
 	# 	params.extend([""])
 	return params
+
 
 # создать контейнер
 def createContainer(imgName, contName):
@@ -66,6 +67,7 @@ def createContainer(imgName, contName):
 		ret = []
 	return ret
 
+
 # запустить контейнер
 def startContainer(name):
 	command = f"docker start {name}"
@@ -75,6 +77,7 @@ def startContainer(name):
 	else:
 		ret = []
 	return ret
+
 
 # запустить контейнер
 def stopContainer(name):
@@ -86,17 +89,33 @@ def stopContainer(name):
 		ret = []
 	return ret
 
+
+# получить containerId из файла stats.txt
+def getStatsParams():
+	str = h.readInputFile('stats.txt')
+	# print(f"{str}=")
+	if (str != ""):
+		h.writeInputFile('log.txt', datetime.now().strftime("%Y%m%d%H%M%S") + "	"+str+"\n", "a")
+	# h.writeInputFile('log.txt', str)
+	params = str.split()
+	if len(params) < 1:
+		params = ["","",""]
+	return params
+
+
 # состояние контейнера
-def statusContainer(name):
-	resp = runCommand('docker stats '+name+' --format "{{.ID}} {{.Name}} {{.Container}} {{.CPUPerc}}" --no-stream')
-	# print(resp.stdout.splitlines()[0].split()[0])
-	print(resp.stdout)
-	h.writeOutputFile('response.txt', resp.stdout)
+def statusContainer(name, respfile='response.txt'):
+	resp = runCommand('docker stats '+name+' --format "{{.ID}}\t{{.Name}}\t{{.CPUPerc}}\t{{.MemUsage}}\t{{.NetIO}}\t{{.BlockIO}}\t{{.MemPerc}}\t{{.PIDs}}" --no-stream')
+	h.writeOutputFile(respfile, resp.stdout)
 	# return resp.stdout
 
 # 
 def clearBuffer():
 	h.writeInputFile('params.txt', '')
+
+# 
+def clearBufferStats():
+	h.writeInputFile('stats.txt', '')
 
 
 # command = 'docker images'
