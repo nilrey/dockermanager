@@ -4,17 +4,19 @@ import constants as cst
 
 print("containerStats started")
 # ожидаемый формат команды в stats.txt : camino-back
-args = f.getStatsParams()
-containerName = args[0]
-f.clearBufferStats()
+# args = f.getStatsParams()
+# containerName = args[0]
+# f.clearBufferStats()
+stopCommand = False
 
-while (containerName != "stopScript"):
-    print("containerStats waiting")
+while ( not stopCommand ):
+    # print("containerStats waiting")
+    containerName = f.getParamContainerStats()
+    f.clearBufferStats("container_stats")
     if(containerName != "" and containerName != "stopScript"):
         print("containerStats working")
         f.statusContainer(containerName, cst.STATS_OUT_FL)
     time.sleep(1)
-    containerName = f.getStatsParams()[0]
-    f.clearBufferStats()
+    stopCommand = f.isStop(containerName)
 
 # print("Script stopped")

@@ -79,7 +79,7 @@ def startContainer(name):
 	return ret
 
 
-# запустить контейнер
+# остановить контейнер
 def stopContainer(name):
 	command = f"docker container stop {name}"
 	res = runCommand(command)
@@ -102,20 +102,53 @@ def getStatsParams():
 		params = ["","",""]
 	return params
 
+def getParamContainerStats():
+	str = h.readInputFile('container_stats.txt')
+	if (str != ""):
+		h.writeInputFile('log.txt', datetime.now().strftime("%Y%m%d%H%M%S") + "	ContainerStats "+str+"\n", "a")
+	return str
 
-# состояние контейнера
+# состояние контейнера через docker stats 
 def statusContainer(name, respfile='response.txt'):
-	resp = runCommand('docker stats '+name+' --format "{{.ID}}\t{{.Name}}\t{{.CPUPerc}}\t{{.MemUsage}}\t{{.NetIO}}\t{{.BlockIO}}\t{{.MemPerc}}\t{{.PIDs}}" --no-stream')
+	# docker inspect -f '{{.State.Status}}' cmockneuro
+	#  docker ps -a -f name=cmockneuro | grep -w cmockneuro
+	status = runCommand('docker inspect -f "{{.State.Status}}" ' + name )
+	resp = runCommand('docker stats ' + name + ' --format "' + str(status.stdout).strip() + '\t{{.ID}}\t{{.Name}}\t{{.CPUPerc}}\t{{.MemUsage}}\t{{.NetIO}}\t{{.BlockIO}}\t{{.MemPerc}}\t{{.PIDs}}" --no-stream')
 	h.writeOutputFile(respfile, resp.stdout)
 	# return resp.stdout
+
+# состояние контейнера через docker ps 
+def statusContainerRun(name, respfile='image_run.txt'):
+	# docker inspect -f '{{.State.Status}}' cmockneuro # exited \ running
+	#  docker ps -a -f name=cmockneuro | grep -w cmockneuro
+	containerData = commandPsByName(name)
+	# imageData = commandImageByName(containerData[5])
+	
+	h.writeOutputFile(respfile, containerData.split('\t')[0])
+	# return resp.stdout
+
+def commandPsByName(name):
+	resp = runCommand('docker ps -a -f name=' + name + ' | grep -w ' + name )
+	return resp.stdout
+
+def commandImageByName(imageName):
+	resp = runCommand('docker images ' + imageName )
+	return resp.stdout
+
 
 # 
 def clearBuffer():
 	h.writeInputFile('params.txt', '')
 
 # 
-def clearBufferStats():
-	h.writeInputFile('stats.txt', '')
+def clearBufferStats(buffer_file = "stats"):
+	h.writeInputFile(buffer_file + '.txt', '')
+
+def isStop(com):
+	resp = False
+	if(com == 'stopScript'):
+		resp = True
+	return resp
 
 
 # command = 'docker images'
